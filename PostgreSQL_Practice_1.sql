@@ -29,4 +29,51 @@ CREATE TABLE products (
 select * from products;
 
 
+CREATE TABLE orders (
+    order_id INT PRIMARY KEY,
+    customer_id INT,
+    order_date DATE,
+    order_status VARCHAR(20),
+    payment_method VARCHAR(30),
+    shipping_city VARCHAR(50),
+    shipping_cost NUMERIC(10,2),
+    discount NUMERIC(5,2),
+    tax_amount NUMERIC(10,2),
+    sales_rep_id INT,
+
+    CONSTRAINT fk_customer
+        FOREIGN KEY (customer_id)
+        REFERENCES customers(customer_id)
+);
+
+select * from orders;
+
+CREATE TABLE order_items (
+    order_item_id INT PRIMARY KEY,
+    order_id INT,
+    product_id INT,
+    quantity INT,
+    unit_price NUMERIC(10,2),
+    discount_amount NUMERIC(10,2),
+    total_amount NUMERIC(12,2),
+    warehouse_id INT,
+    delivery_days INT,
+    returned_flag BOOLEAN,
+
+    CONSTRAINT fk_order
+        FOREIGN KEY (order_id)
+        REFERENCES orders(order_id),
+
+    CONSTRAINT fk_product
+        FOREIGN KEY (product_id)
+        REFERENCES products(product_id)
+);
+
+select * from order_items;
+
+-- 1. Total Customers --
+
+select count (*) from customers;
+
+
 
