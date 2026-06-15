@@ -76,4 +76,13 @@ select * from order_items;
 select count (*) from customers;
 
 
+-- 2. Total orders --
+
+SELECT COUNT(*) FROM orders;
+
+-- 3. Customers by City --
+
+SELECT city, COUNT(*) as total_customers FROM customers 
+GROUP BY city order by total_customers asc;
+
 
