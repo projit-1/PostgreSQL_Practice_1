@@ -85,4 +85,56 @@ SELECT COUNT(*) FROM orders;
 SELECT city, COUNT(*) as total_customers FROM customers 
 GROUP BY city order by total_customers asc;
 
+-- 4. Average customer age
 
+SELECT ROUND(AVG(age)::numeric, 2)
+FROM customers;
+
+-- 5. Top 10 customers by orders
+
+SELECT customer_id, COUNT(*) orders_count
+FROM orders
+GROUP BY customer_id
+ORDER BY orders_count DESC
+LIMIT 10;
+
+-- 6. Total sales by product category
+
+SELECT p.category, SUM(oi.total_amount)
+FROM order_items oi
+JOIN products p ON oi.product_id=p.product_id
+GROUP BY p.category;
+
+-- 7. Top 10 products by revenue
+
+SELECT p.product_name, SUM(oi.total_amount) revenue
+FROM order_items oi
+JOIN products p ON oi.product_id=p.product_id
+GROUP BY p.product_name
+ORDER BY revenue DESC
+LIMIT 10;
+
+-- 8. Monthly revenue
+
+SELECT DATE_TRUNC('month', o.order_date) AS month,
+       SUM(oi.total_amount) AS total_sales
+FROM orders o
+JOIN order_items oi
+    ON o.order_id = oi.order_id
+GROUP BY 1
+ORDER BY 1;
+
+-- 9. Average order value
+
+SELECT round(AVG(total_amount)::numeric,2)  FROM order_items;
+
+-- 10. Highest spending customer
+
+SELECT c.customer_id, c.first_name,
+SUM(oi.total_amount) spend
+FROM customers c
+JOIN orders o ON c.customer_id=o.customer_id
+JOIN order_items oi ON o.order_id=oi.order_id
+GROUP BY c.customer_id,c.first_name
+ORDER BY spend DESC
+LIMIT 1;
