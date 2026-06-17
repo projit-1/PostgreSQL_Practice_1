@@ -138,3 +138,127 @@ JOIN order_items oi ON o.order_id=oi.order_id
 GROUP BY c.customer_id,c.first_name
 ORDER BY spend DESC
 LIMIT 1;
+
+
+-- 11. Orders by status
+
+SELECT order_status, COUNT(*) FROM orders GROUP BY order_status;
+
+-- 12. Revenue by city
+
+SELECT o.shipping_city, SUM(oi.total_amount)
+FROM orders o
+JOIN order_items oi ON o.order_id=oi.order_id
+GROUP BY o.shipping_city;
+
+-- 13. Products never ordered
+
+SELECT product_id, product_name
+FROM products
+WHERE product_id NOT IN
+(SELECT DISTINCT product_id FROM order_items);
+
+-- 14. Average delivery days by warehouse
+
+SELECT warehouse_id, round(AVG(delivery_days)::numeric,2) as avg_delivery
+FROM order_items
+GROUP BY warehouse_id order by avg_delivery desc limit 5;
+
+-- 15. Return rate
+
+SELECT ROUND(
+    AVG(CASE WHEN returned_flag THEN 1 ELSE 0 END) * 100,
+    2
+) AS return_rate
+FROM order_items;
+
+-- 16. Top brand by revenue
+
+SELECT p.brand, SUM(oi.total_amount) revenue
+FROM products p
+JOIN order_items oi ON p.product_id=oi.product_id
+GROUP BY p.brand
+ORDER BY revenue DESC
+LIMIT 1;
+
+-- 17. Running revenue
+
+SELECT order_id,
+SUM(total_amount) OVER(ORDER BY order_id)
+FROM order_items;
+
+-- 18. Rank customers by spending
+
+SELECT customer_id,
+SUM(oi.total_amount) spend,
+RANK() OVER(ORDER BY SUM(oi.total_amount) DESC)
+FROM orders o
+JOIN order_items oi ON o.order_id=oi.order_id
+GROUP BY customer_id;
+
+-- 19. Customers with >5 orders
+
+SELECT customer_id
+FROM orders
+GROUP BY customer_id
+HAVING COUNT(*)>5;
+
+-- 20. Revenue after discount
+
+SELECT SUM(total_amount-discount_amount)
+FROM order_items;
+
+-- 21. Most popular payment method
+
+SELECT payment_method, COUNT(*)
+FROM orders
+GROUP BY payment_method
+ORDER BY COUNT(*) DESC
+LIMIT 1;
+
+-- 22. Yearly revenue
+
+SELECT EXTRACT(YEAR FROM order_date) yr,
+SUM(oi.total_amount)
+FROM orders o
+JOIN order_items oi ON o.order_id=oi.order_id
+GROUP BY yr;
+
+
+-- 23. Customer lifetime value
+
+SELECT customer_id, SUM(oi.total_amount) as amount
+FROM orders o
+JOIN order_items oi ON o.order_id=oi.order_id
+GROUP BY customer_id order by amount desc;
+
+
+-- 24. Top category in each city
+
+SELECT shipping_city, category, revenue
+FROM (
+SELECT o.shipping_city,p.category,
+SUM(oi.total_amount) revenue,
+RANK() OVER(PARTITION BY o.shipping_city ORDER BY SUM(oi.total_amount) DESC) rnk
+FROM orders o
+JOIN order_items oi ON o.order_id=oi.order_id
+JOIN products p ON oi.product_id=p.product_id
+GROUP BY o.shipping_city,p.category
+)x
+WHERE rnk=1;
+
+
+-- 25. Create sales view
+
+CREATE VIEW sales_summary AS
+SELECT o.order_id,o.customer_id,
+SUM(oi.total_amount) revenue
+FROM orders o
+JOIN order_items oi ON o.order_id=oi.order_id
+GROUP BY o.order_id,o.customer_id;
+
+
+----
+
+SELECT * FROM sales_summary;
+
